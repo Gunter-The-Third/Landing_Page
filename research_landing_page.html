@@ -1,0 +1,873 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jamie Keegan-Treloar - Research Portfolio</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/computer-modern@0.1.2/fonts.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow-x: hidden;
+            color: #fff;
+        }
+        
+        /* Background Animation Canvas */
+        #background-canvas {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+        }
+        
+        /* Main Container */
+        .container {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+        
+        /* Profile Card */
+        .profile-card {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(15px);
+            border-radius: 20px;
+            padding: 50px 60px;
+            max-width: 900px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            color: #333;
+            animation: fadeIn 1s ease-out;
+            position: relative;
+        }
+        
+        /* JAG-R Animation Container on Card */
+        .jagr-container {
+            width: 100%;
+            height: 400px;
+            border-radius: 15px;
+            overflow: hidden;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2), 
+                        inset 0 0 60px rgba(0, 0, 0, 0.1);
+            position: relative;
+        }
+        
+        .jagr-container::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            border-radius: 15px;
+            box-shadow: inset 0 0 40px rgba(102, 126, 234, 0.3);
+            pointer-events: none;
+        }
+        
+        #jagr-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+        
+        .jagr-description {
+            text-align: center;
+            color: #666;
+            font-size: 0.9em;
+            font-style: italic;
+            margin-bottom: 10px;
+        }
+        
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
+        /* Header */
+        .profile-header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 30px;
+            border-bottom: 2px solid #e0e0e0;
+        }
+        
+        .profile-header h1 {
+            font-size: 2.5em;
+            color: #667eea;
+            margin-bottom: 10px;
+            font-weight: 700;
+            font-family: 'Computer Modern Serif', serif;
+        }
+        
+        .profile-header h2 {
+            font-size: 1.3em;
+            color: #764ba2;
+            font-weight: 400;
+            margin-bottom: 5px;
+        }
+        
+        .profile-header p {
+            color: #666;
+            font-size: 1.1em;
+        }
+        
+        /* Bio Section */
+        .bio {
+            margin-bottom: 40px;
+            line-height: 1.8;
+            font-size: 1.05em;
+            color: #555;
+        }
+        
+        .bio h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .bio p {
+            margin-bottom: 15px;
+        }
+        
+        /* Research Interests */
+        .research-interests {
+            margin-bottom: 40px;
+        }
+        
+        .research-interests h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .interests-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        
+        .tag {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            transition: transform 0.2s;
+        }
+        
+        .tag:hover {
+            transform: scale(1.05);
+        }
+        
+        /* Social Links */
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .social-link {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 30px;
+            font-weight: 600;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+        
+        .social-link:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        
+        .social-link i {
+            font-size: 1.3em;
+        }
+        
+        /* Publications */
+        .publications {
+            margin-bottom: 30px;
+        }
+        
+        .publications h3 {
+            color: #667eea;
+            margin-bottom: 15px;
+            font-size: 1.4em;
+        }
+        
+        .publication-item {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .publication-item strong {
+            color: #667eea;
+        }
+        
+        /* Footer */
+        .footer {
+            text-align: center;
+            color: #999;
+            font-size: 0.9em;
+            margin-top: 20px;
+            padding-top: 20px;
+            border-top: 2px solid #e0e0e0;
+        }
+        
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .profile-card {
+                padding: 30px 25px;
+            }
+            
+            .profile-header h1 {
+                font-size: 2em;
+            }
+            
+            .social-links {
+                flex-direction: column;
+            }
+            
+            .social-link {
+                justify-content: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Background Animation -->
+    <canvas id="background-canvas"></canvas>
+    
+    <!-- Main Content -->
+    <div class="container">
+        <div class="profile-card">
+            <!-- Header -->
+            <div class="profile-header">
+                <h1>Jamie Keegan-Treloar</h1>
+                <h2>PhD Candidate in Mathematics</h2>
+                <p>Flinders University</p>
+                <p>Complex-Valued Neural Networks & Optimisation Research</p>
+            </div>
+            
+            <!-- JAG-R Animation Container -->
+            
+            <div class="jagr-container">
+                <canvas id="jagr-canvas"></canvas>
+            </div>
+            <p class="jagr-description">Animation of JAG-R method finding the optimal geometric center using inscribed arc intersections</p>
+            <!-- Bio -->
+            <div class="bio">
+                <h3>About Me</h3>
+                <p>
+                    I am Jamie Keegan-Treloar, a mathematician and PhD candidate at Flinders University. 
+                    My research investigates the theoretical and computational foundations of Complex-Valued 
+                    Neural Networks (CVNNs), with a particular focus on their convergence properties and 
+                    representational geometry.
+                </p>
+                <p>
+                    My current work examines the regions of the complex plane in which a single complex-valued 
+                    neuron can approximate the XOR function, providing new insights into the interaction between 
+                    activation function geometry, weight initialisation, and optimisation stability. This research 
+                    contributes to a broader understanding of how complex-valued models can improve learning 
+                    dynamics and expressivity compared to traditional real-valued networks.
+                </p>
+                <p>
+                    Beyond theoretical analysis, I develop generalised neural network frameworks in Python that 
+                    support both real and complex domains. These frameworks enable systematic exploration of 
+                    activation functions, weight initialisation strategies, and gradient-based optimisation 
+                    methods.
+                </p>
+                <p>
+                    My broader interests include complex analysis, signal processing, machine learning 
+                    interpretability, and statistical methods for convergence assessment. I aim to bridge the 
+                    gap between mathematical theory and practical machine learning by formalising the behaviour 
+                    of complex-valued systems and identifying conditions for stable learning.
+                </p>
+            </div>
+            
+            <!-- Research Interests -->
+            <div class="research-interests">
+                <h3>Research Keywords</h3>
+                <div class="interests-tags">
+                    <span class="tag">Complex-Valued Neural Networks</span>
+                    <span class="tag">Real-Valued Neural Networks</span>
+                    <span class="tag">XOR Problem</span>
+                    <span class="tag">Convergent Regions</span>
+                    <span class="tag">Complex Activation Functions</span>
+                    <span class="tag">Weight Initialisation Strategies</span>
+                    <span class="tag">Gradient Descent & Optimisation</span>
+                    <span class="tag">Complex-Valued Adam</span>
+                    <span class="tag">Non-Holomorphic Learning</span>
+                    <span class="tag">Complex Embeddings</span>
+                    <span class="tag">Decision Boundaries</span>
+                    <span class="tag">Phase & Magnitude Encoding</span>
+                    <span class="tag">Statistical Convergence Analysis</span>
+                    <span class="tag">Complex Analysis in ML</span>
+                    <span class="tag">Representation Geometry</span>
+                </div>
+            </div>
+            
+            <!-- Social Links -->
+            <div class="social-links">
+                <a href="https://github.com/Gunter-The-Third" class="social-link" target="_blank">
+                    <i class="fab fa-github"></i>
+                    <span>GitHub</span>
+                </a>
+                <a href="https://www.linkedin.com/in/jamie-keegan-treloar/" class="social-link" target="_blank">
+                    <i class="fab fa-linkedin"></i>
+                    <span>LinkedIn</span>
+                </a>
+                <a href="mailto:jamie.keegantreloar@flinders.edu.au" class="social-link">
+                    <i class="fas fa-envelope"></i>
+                    <span>Email</span>
+                </a>
+            </div>
+            
+            <!-- Publications/Projects -->
+            <div class="publications">
+                <h3>Recent Work</h3>
+                <div class="publication-item">
+                    <strong>JAG-R Algorithm:</strong> A novel geometric relaxation method for finding 
+                    optimal centers in point sets, with applications in signal denosing.
+                </div>
+                <div class="publication-item">
+                    <strong>CVNN Initialisation Study:</strong> Investigating phase-constrained 
+                    initialisation methods for complex-valued neural networks on XOR problems.
+                </div>
+                <div class="publication-item">
+                    <strong>Noise Generalization:</strong> Analysis of initialisation method robustness 
+                    under noisy training conditions.
+                </div>
+            </div>
+            
+            <!-- Footer -->
+            <div class="footer">
+                
+                <p>© 2025 Jamie Keegan-Treloar. All rights reserved.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Background Animation Script -->
+    <script>
+        // Particle Background Animation
+        class ParticleBackground {
+            constructor() {
+                this.canvas = document.getElementById('background-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                this.particles = [];
+                this.particleCount = 80;
+                this.connectionDistance = 150;
+                
+                this.init();
+                this.animate();
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+            }
+            
+            init() {
+                this.particles = [];
+                for (let i = 0; i < this.particleCount; i++) {
+                    this.particles.push({
+                        x: Math.random() * this.width,
+                        y: Math.random() * this.height,
+                        vx: (Math.random() - 0.5) * 0.5,
+                        vy: (Math.random() - 0.5) * 0.5,
+                        radius: Math.random() * 2 + 1
+                    });
+                }
+            }
+            
+            animate() {
+                const gradient = this.ctx.createLinearGradient(0, 0, this.width, this.height);
+                gradient.addColorStop(0, '#667eea');
+                gradient.addColorStop(1, '#764ba2');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // Update and draw particles
+                this.particles.forEach(p => {
+                    p.x += p.vx;
+                    p.y += p.vy;
+                    
+                    if (p.x < 0 || p.x > this.width) p.vx *= -1;
+                    if (p.y < 0 || p.y > this.height) p.vy *= -1;
+                    
+                    // Draw particle
+                    this.ctx.fillStyle = 'rgba(255, 255, 255, 0.6)';
+                    this.ctx.beginPath();
+                    this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+                    this.ctx.fill();
+                });
+                
+                // Draw connections
+                for (let i = 0; i < this.particles.length; i++) {
+                    for (let j = i + 1; j < this.particles.length; j++) {
+                        const dx = this.particles[i].x - this.particles[j].x;
+                        const dy = this.particles[i].y - this.particles[j].y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (dist < this.connectionDistance) {
+                            const opacity = (1 - dist / this.connectionDistance) * 0.3;
+                            this.ctx.strokeStyle = `rgba(255, 255, 255, ${opacity})`;
+                            this.ctx.lineWidth = 1;
+                            this.ctx.beginPath();
+                            this.ctx.moveTo(this.particles[i].x, this.particles[i].y);
+                            this.ctx.lineTo(this.particles[j].x, this.particles[j].y);
+                            this.ctx.stroke();
+                        }
+                    }
+                }
+                
+                requestAnimationFrame(() => this.animate());
+            }
+        }
+        
+        // JAG-R Animation on Card
+        class JAGRBackgroundAnimation {
+            constructor() {
+                this.canvas = document.getElementById('jagr-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Set canvas to container size
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Animation state
+                this.phase = 'generating';
+                this.currentAngle = 0.01;
+                this.animationSpeed = 0.015;
+                this.maxAngle = Math.PI - 0.01;
+                
+                // Points and geometry
+                this.points = [];
+                this.circles = [];
+                this.optimalPoint = null;
+                this.foundOptimal = false;
+                
+                // Opacity for fade effects
+                this.pointsOpacity = 0;
+                this.circlesOpacity = 1;
+                this.optimalOpacity = 0;
+                this.fadeSpeed = 0.02;
+                
+                // Timing
+                this.pauseCounter = 0;
+                this.pauseDuration = 120;
+                
+                // Visual parameters
+                this.pointRadius = 6;
+                this.optimalRadius = 12;
+                
+                // Start animation
+                this.generatePoints();
+                this.animate();
+            }
+            
+            resizeCanvas() {
+                const container = this.canvas.parentElement;
+                this.canvas.width = container.clientWidth;
+                this.canvas.height = container.clientHeight;
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+            }
+            
+            generatePoints() {
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const baseSize = Math.min(this.width, this.height) * 0.15;
+                const noise = baseSize * 0.6;
+                
+                const basePoints = [
+                    [centerX - baseSize, centerY - baseSize],
+                    [centerX + baseSize, centerY - baseSize],
+                    [centerX - baseSize, centerY + baseSize],
+                    [centerX + baseSize, centerY + baseSize]
+                ];
+                
+                this.points = basePoints.map(([x, y]) => ({
+                    x: x + (Math.random() - 0.5) * noise * 2,
+                    y: y + (Math.random() - 0.5) * noise * 2
+                }));
+                
+                this.phase = 'generating';
+                this.currentAngle = 0.01;
+                this.foundOptimal = false;
+                this.optimalPoint = null;
+                this.circles = [];
+                this.pointsOpacity = 0;
+                this.circlesOpacity = 1;
+                this.optimalOpacity = 0;
+                this.pauseCounter = 0;
+            }
+            
+            calculateCircles(theta) {
+                this.circles = [];
+                const centroid = this.getCentroid();
+                
+                for (let i = 0; i < this.points.length; i++) {
+                    for (let j = i + 1; j < this.points.length; j++) {
+                        const p1 = this.points[i];
+                        const p2 = this.points[j];
+                        
+                        const dx = p2.x - p1.x;
+                        const dy = p2.y - p1.y;
+                        const d = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (d < 0.001) continue;
+                        
+                        const radius = (d / 2) / Math.cos(theta / 2);
+                        const midX = (p1.x + p2.x) / 2;
+                        const midY = (p1.y + p2.y) / 2;
+                        
+                        const perpX = -dy / d;
+                        const perpY = dx / d;
+                        const l = Math.sqrt(radius * radius - (d / 2) * (d / 2));
+                        
+                        const center1 = { x: midX + perpX * l, y: midY + perpY * l };
+                        const center2 = { x: midX - perpX * l, y: midY - perpY * l };
+                        
+                        const dist1 = this.distance(center1, centroid);
+                        const dist2 = this.distance(center2, centroid);
+                        const center = dist1 < dist2 ? center1 : center2;
+                        
+                        this.circles.push({
+                            center: center,
+                            radius: radius,
+                            p1: p1,
+                            p2: p2
+                        });
+                    }
+                }
+            }
+            
+            checkAllCirclesOverlap() {
+                if (this.circles.length < 2) return false;
+                
+                for (let i = 0; i < this.circles.length; i++) {
+                    for (let j = i + 1; j < this.circles.length; j++) {
+                        const c1 = this.circles[i];
+                        const c2 = this.circles[j];
+                        const dist = this.distance(c1.center, c2.center);
+                        
+                        if (dist > c1.radius + c2.radius + 1) {
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            findOptimalPoint() {
+                if (this.circles.length < 2) return null;
+                
+                let maxDist = -Infinity;
+                let pair = null;
+                
+                for (let i = 0; i < this.circles.length; i++) {
+                    for (let j = i + 1; j < this.circles.length; j++) {
+                        const c1 = this.circles[i];
+                        const c2 = this.circles[j];
+                        const dist = this.distance(c1.center, c2.center);
+                        const overlapDist = c1.radius + c2.radius;
+                        const diff = overlapDist - dist;
+                        
+                        if (diff < maxDist || maxDist === -Infinity) {
+                            maxDist = diff;
+                            pair = [i, j];
+                        }
+                    }
+                }
+                
+                if (!pair) return null;
+                
+                const [i, j] = pair;
+                const c1 = this.circles[i];
+                const c2 = this.circles[j];
+                
+                const dx = c2.center.x - c1.center.x;
+                const dy = c2.center.y - c1.center.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 0.001) return c1.center;
+                
+                const dirX = dx / dist;
+                const dirY = dy / dist;
+                
+                return {
+                    x: c1.center.x + dirX * c1.radius,
+                    y: c1.center.y + dirY * c1.radius
+                };
+            }
+            
+            distance(p1, p2) {
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+            
+            getCentroid() {
+                const sum = this.points.reduce((acc, p) => ({
+                    x: acc.x + p.x,
+                    y: acc.y + p.y
+                }), {x: 0, y: 0});
+                
+                return {
+                    x: sum.x / this.points.length,
+                    y: sum.y / this.points.length
+                };
+            }
+            
+            animate() {
+                switch(this.phase) {
+                    case 'generating':
+                        this.pointsOpacity = Math.min(1, this.pointsOpacity + this.fadeSpeed);
+                        if (this.pointsOpacity >= 1) {
+                            this.phase = 'animating';
+                        }
+                        break;
+                        
+                    case 'animating':
+                        this.currentAngle += this.animationSpeed;
+                        
+                        if (this.currentAngle >= this.maxAngle) {
+                            this.currentAngle = this.maxAngle;
+                        }
+                        
+                        this.calculateCircles(this.currentAngle);
+                        
+                        if (!this.foundOptimal && this.checkAllCirclesOverlap()) {
+                            this.optimalPoint = this.findOptimalPoint();
+                            this.foundOptimal = true;
+                            this.phase = 'found';
+                        }
+                        break;
+                        
+                    case 'found':
+                        this.optimalOpacity = Math.min(1, this.optimalOpacity + this.fadeSpeed * 2);
+                        this.pauseCounter++;
+                        
+                        if (this.pauseCounter >= this.pauseDuration) {
+                            this.phase = 'fading';
+                        }
+                        break;
+                        
+                    case 'fading':
+                        this.circlesOpacity = Math.max(0, this.circlesOpacity - this.fadeSpeed);
+                        this.pointsOpacity = Math.max(0, this.pointsOpacity - this.fadeSpeed);
+                        this.optimalOpacity = Math.max(0, this.optimalOpacity - this.fadeSpeed);
+                        
+                        if (this.circlesOpacity <= 0) {
+                            this.phase = 'complete';
+                        }
+                        break;
+                        
+                    case 'complete':
+                        this.generatePoints();
+                        break;
+                }
+                
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            draw() {
+                const gradient = this.ctx.createLinearGradient(0, 0, this.width, this.height);
+                gradient.addColorStop(0, 'rgba(102, 126, 234, 0.95)');
+                gradient.addColorStop(1, 'rgba(118, 75, 162, 0.95)');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                if (this.checkAllCirclesOverlap() && this.circles.length > 0 && this.circlesOpacity > 0) {
+                    this.ctx.globalAlpha = this.circlesOpacity * 0.3;
+                    this.drawIntersectionArea();
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                if (this.circlesOpacity > 0) {
+                    this.ctx.globalAlpha = this.circlesOpacity;
+                    this.circles.forEach(circle => {
+                        this.drawCircle(circle);
+                    });
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                if (this.pointsOpacity > 0) {
+                    this.ctx.globalAlpha = this.pointsOpacity;
+                    this.points.forEach(point => {
+                        this.drawPoint(point);
+                    });
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                if (this.optimalPoint && this.optimalOpacity > 0) {
+                    const pulse = Math.sin(Date.now() / 300) * 0.2 + 0.8;
+                    this.ctx.globalAlpha = this.optimalOpacity * pulse;
+                    this.drawOptimalPoint(this.optimalPoint);
+                    this.ctx.globalAlpha = 1;
+                }
+            }
+            
+            drawPoint(point) {
+                const gradient = this.ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.pointRadius * 3
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.pointRadius * 3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.pointRadius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+            
+            drawCircle(circle) {
+                // Subtle outer glow
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.15)';
+                this.ctx.lineWidth = 2;
+                this.ctx.beginPath();
+                this.ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // Thin main circle line
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.9)';
+                this.ctx.lineWidth = 0.8;
+                this.ctx.beginPath();
+                this.ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+            
+            drawIntersectionArea() {
+                if (this.circles.length === 0) return;
+                
+                this.ctx.save();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(this.circles[0].center.x, this.circles[0].center.y, 
+                            this.circles[0].radius, 0, Math.PI * 2);
+                this.ctx.clip();
+                
+                for (let i = 1; i < this.circles.length; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.circles[i].center.x, this.circles[i].center.y, 
+                                this.circles[i].radius, 0, Math.PI * 2);
+                    this.ctx.clip();
+                }
+                
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                this.ctx.restore();
+            }
+            
+            drawOptimalPoint(point) {
+                for (let i = 3; i > 0; i--) {
+                    const gradient = this.ctx.createRadialGradient(
+                        point.x, point.y, 0,
+                        point.x, point.y, this.optimalRadius * i * 1.5
+                    );
+                    gradient.addColorStop(0, `rgba(255, 215, 0, ${0.3 / i})`);
+                    gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(point.x, point.y, this.optimalRadius * i * 1.5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                const circles = [
+                    { radius: this.optimalRadius * 1.2, lineWidth: 2, opacity: 0.4 },
+                    { radius: this.optimalRadius * 0.8, lineWidth: 2, opacity: 0.6 },
+                    { radius: this.optimalRadius * 0.4, lineWidth: 2, opacity: 0.8 }
+                ];
+                
+                circles.forEach(({radius, lineWidth, opacity}) => {
+                    this.ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
+                    this.ctx.lineWidth = lineWidth;
+                    this.ctx.beginPath();
+                    this.ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                });
+                
+                const centerGradient = this.ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.optimalRadius * 0.3
+                );
+                centerGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                centerGradient.addColorStop(1, 'rgba(255, 215, 0, 1)');
+                
+                this.ctx.fillStyle = centerGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.optimalRadius * 0.3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                this.ctx.lineWidth = 1.5;
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(point.x - this.optimalRadius * 1.5, point.y);
+                this.ctx.lineTo(point.x + this.optimalRadius * 1.5, point.y);
+                this.ctx.stroke();
+                
+                this.ctx.beginPath();
+                this.ctx.moveTo(point.x, point.y - this.optimalRadius * 1.5);
+                this.ctx.lineTo(point.x, point.y + this.optimalRadius * 1.5);
+                this.ctx.stroke();
+            }
+        }
+
+        window.addEventListener('load', () => {
+            new ParticleBackground();
+            new JAGRBackgroundAnimation();
+        });
+    </script>
+</body>
+</html>
