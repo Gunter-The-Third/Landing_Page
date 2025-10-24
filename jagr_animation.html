@@ -1,0 +1,302 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAG-R Method Animation</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            margin: 0;
+        }
+        
+        .container {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            max-width: 900px;
+            width: 100%;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .subtitle {
+            text-align: center;
+            color: #666;
+            margin-bottom: 30px;
+            font-style: italic;
+        }
+        
+        canvas {
+            border: 2px solid #ddd;
+            border-radius: 8px;
+            display: block;
+            margin: 0 auto 20px;
+            background: #fafafa;
+        }
+        
+        .controls {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+        }
+        
+        .control-group label {
+            font-weight: bold;
+            min-width: 120px;
+            color: #555;
+        }
+        
+        .slider-container {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        input[type="range"] {
+            flex: 1;
+            height: 6px;
+            border-radius: 3px;
+            background: #ddd;
+            outline: none;
+        }
+        
+        input[type="range"]::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            appearance: none;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+        }
+        
+        input[type="range"]::-moz-range-thumb {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: #667eea;
+            cursor: pointer;
+            border: none;
+        }
+        
+        .value-display {
+            min-width: 80px;
+            padding: 5px 10px;
+            background: #f0f0f0;
+            border-radius: 5px;
+            text-align: center;
+            font-family: monospace;
+        }
+        
+        .button-group {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+        }
+        
+        button {
+            padding: 12px 30px;
+            font-size: 16px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        button.primary {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+        
+        button.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        button.secondary {
+            background: #f0f0f0;
+            color: #333;
+        }
+        
+        button.secondary:hover {
+            background: #e0e0e0;
+        }
+        
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .info-panel {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 8px;
+            margin-top: 20px;
+        }
+        
+        .info-panel h3 {
+            margin-top: 0;
+            color: #667eea;
+        }
+        
+        .info-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #e0e0e0;
+        }
+        
+        .info-item:last-child {
+            border-bottom: none;
+        }
+        
+        .info-label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .info-value {
+            font-family: monospace;
+            color: #333;
+        }
+        
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 15px;
+            padding: 15px;
+            background: #f8f9fa;
+            border-radius: 8px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #333;
+        }
+        
+        .playing {
+            animation: pulse 1s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JAG-R Method Visualization</h1>
+        <p class="subtitle">Just Another Geometric Relaxation - Circle Overlap Method</p>
+        
+        <canvas id="canvas" width="800" height="600"></canvas>
+        
+        <div class="controls">
+            <div class="control-group">
+                <label>Angle (θ):</label>
+                <div class="slider-container">
+                    <input type="range" id="angleSlider" min="0.01" max="3.14" step="0.01" value="0.5">
+                    <span class="value-display" id="angleValue">0.50 rad</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Animation Speed:</label>
+                <div class="slider-container">
+                    <input type="range" id="speedSlider" min="0.001" max="0.05" step="0.001" value="0.01">
+                    <span class="value-display" id="speedValue">0.010</span>
+                </div>
+            </div>
+            
+            <div class="control-group">
+                <label>Point Noise:</label>
+                <div class="slider-container">
+                    <input type="range" id="noiseSlider" min="0" max="50" step="1" value="20">
+                    <span class="value-display" id="noiseValue">20</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="button-group">
+            <button class="primary" id="playBtn">▶ Play Animation</button>
+            <button class="secondary" id="pauseBtn" disabled>⏸ Pause</button>
+            <button class="secondary" id="resetBtn">↻ Reset</button>
+            <button class="secondary" id="regenerateBtn">🎲 New Points</button>
+        </div>
+        
+        <div class="info-panel">
+            <h3>Current Status</h3>
+            <div class="info-item">
+                <span class="info-label">Current Angle:</span>
+                <span class="info-value" id="currentAngle">0.50 rad (28.6°)</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Circles Overlapping:</span>
+                <span class="info-value" id="overlapStatus">No</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Intersection Area:</span>
+                <span class="info-value" id="intersectionArea">N/A</span>
+            </div>
+            <div class="info-item">
+                <span class="info-label">Optimal Point Found:</span>
+                <span class="info-value" id="optimalFound">Not yet</span>
+            </div>
+        </div>
+        
+        <div class="legend">
+            <div class="legend-item">
+                <div class="legend-color" style="background: #e74c3c;"></div>
+                <span>Input Points</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: transparent; border-color: #3498db;"></div>
+                <span>Circle Arcs</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: rgba(52, 152, 219, 0.1); border-color: #3498db;"></div>
+                <span>Intersection Area</span>
+            </div>
+            <div class="legend-item">
+                <div class="legend-color" style="background: #f39c12;"></div>
+                <span>Optimal Point</span>
+            </div>
+        </div>
+    </div>
+    
+    <script src="jagr_animation.js"></script>
+</body>
+</html>

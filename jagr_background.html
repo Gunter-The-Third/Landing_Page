@@ -1,0 +1,452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JAG-R Background Animation</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            overflow: hidden;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        
+        #canvas {
+            display: block;
+            width: 100vw;
+            height: 100vh;
+        }
+    </style>
+</head>
+<body>
+    <canvas id="canvas"></canvas>
+    <script>
+        class JAGRBackgroundAnimation {
+            constructor() {
+                this.canvas = document.getElementById('canvas');
+                this.ctx = this.canvas.getContext('2d');
+                
+                // Set canvas to full window size
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+                
+                // Animation state
+                this.phase = 'generating'; // generating, animating, found, fading, complete
+                this.currentAngle = 0.01;
+                this.animationSpeed = 0.015;
+                this.maxAngle = Math.PI - 0.01;
+                
+                // Points and geometry
+                this.points = [];
+                this.circles = [];
+                this.optimalPoint = null;
+                this.foundOptimal = false;
+                
+                // Opacity for fade effects
+                this.pointsOpacity = 0;
+                this.circlesOpacity = 1;
+                this.optimalOpacity = 0;
+                this.fadeSpeed = 0.02;
+                
+                // Timing
+                this.pauseCounter = 0;
+                this.pauseDuration = 120; // frames to pause after finding optimal
+                
+                // Visual parameters
+                this.pointRadius = 6;
+                this.optimalRadius = 12;
+                
+                // Start animation
+                this.generatePoints();
+                this.animate();
+            }
+            
+            resizeCanvas() {
+                this.canvas.width = window.innerWidth;
+                this.canvas.height = window.innerHeight;
+                this.width = this.canvas.width;
+                this.height = this.canvas.height;
+            }
+            
+            generatePoints() {
+                // Generate 4 points with substantial noise
+                const centerX = this.width / 2;
+                const centerY = this.height / 2;
+                const baseSize = Math.min(this.width, this.height) * 0.15;
+                const noise = baseSize * 0.6;
+                
+                const basePoints = [
+                    [centerX - baseSize, centerY - baseSize],
+                    [centerX + baseSize, centerY - baseSize],
+                    [centerX - baseSize, centerY + baseSize],
+                    [centerX + baseSize, centerY + baseSize]
+                ];
+                
+                this.points = basePoints.map(([x, y]) => ({
+                    x: x + (Math.random() - 0.5) * noise * 2,
+                    y: y + (Math.random() - 0.5) * noise * 2
+                }));
+                
+                this.phase = 'generating';
+                this.currentAngle = 0.01;
+                this.foundOptimal = false;
+                this.optimalPoint = null;
+                this.circles = []; // Clear old circles
+                this.pointsOpacity = 0;
+                this.circlesOpacity = 1;
+                this.optimalOpacity = 0;
+                this.pauseCounter = 0;
+            }
+            
+            calculateCircles(theta) {
+                this.circles = [];
+                const centroid = this.getCentroid();
+                
+                for (let i = 0; i < this.points.length; i++) {
+                    for (let j = i + 1; j < this.points.length; j++) {
+                        const p1 = this.points[i];
+                        const p2 = this.points[j];
+                        
+                        const dx = p2.x - p1.x;
+                        const dy = p2.y - p1.y;
+                        const d = Math.sqrt(dx * dx + dy * dy);
+                        
+                        if (d < 0.001) continue;
+                        
+                        const radius = (d / 2) / Math.cos(theta / 2);
+                        const midX = (p1.x + p2.x) / 2;
+                        const midY = (p1.y + p2.y) / 2;
+                        
+                        const perpX = -dy / d;
+                        const perpY = dx / d;
+                        const l = Math.sqrt(radius * radius - (d / 2) * (d / 2));
+                        
+                        const center1 = { x: midX + perpX * l, y: midY + perpY * l };
+                        const center2 = { x: midX - perpX * l, y: midY - perpY * l };
+                        
+                        const dist1 = this.distance(center1, centroid);
+                        const dist2 = this.distance(center2, centroid);
+                        const center = dist1 < dist2 ? center1 : center2;
+                        
+                        this.circles.push({
+                            center: center,
+                            radius: radius,
+                            p1: p1,
+                            p2: p2
+                        });
+                    }
+                }
+            }
+            
+            checkAllCirclesOverlap() {
+                if (this.circles.length < 2) return false;
+                
+                for (let i = 0; i < this.circles.length; i++) {
+                    for (let j = i + 1; j < this.circles.length; j++) {
+                        const c1 = this.circles[i];
+                        const c2 = this.circles[j];
+                        const dist = this.distance(c1.center, c2.center);
+                        
+                        if (dist > c1.radius + c2.radius + 1) { // small tolerance
+                            return false;
+                        }
+                    }
+                }
+                return true;
+            }
+            
+            findOptimalPoint() {
+                if (this.circles.length < 2) return null;
+                
+                let maxDist = -Infinity;
+                let pair = null;
+                
+                for (let i = 0; i < this.circles.length; i++) {
+                    for (let j = i + 1; j < this.circles.length; j++) {
+                        const c1 = this.circles[i];
+                        const c2 = this.circles[j];
+                        const dist = this.distance(c1.center, c2.center);
+                        const overlapDist = c1.radius + c2.radius;
+                        const diff = overlapDist - dist;
+                        
+                        if (diff < maxDist || maxDist === -Infinity) {
+                            maxDist = diff;
+                            pair = [i, j];
+                        }
+                    }
+                }
+                
+                if (!pair) return null;
+                
+                const [i, j] = pair;
+                const c1 = this.circles[i];
+                const c2 = this.circles[j];
+                
+                const dx = c2.center.x - c1.center.x;
+                const dy = c2.center.y - c1.center.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                
+                if (dist < 0.001) return c1.center;
+                
+                const dirX = dx / dist;
+                const dirY = dy / dist;
+                
+                return {
+                    x: c1.center.x + dirX * c1.radius,
+                    y: c1.center.y + dirY * c1.radius
+                };
+            }
+            
+            distance(p1, p2) {
+                const dx = p2.x - p1.x;
+                const dy = p2.y - p1.y;
+                return Math.sqrt(dx * dx + dy * dy);
+            }
+            
+            getCentroid() {
+                const sum = this.points.reduce((acc, p) => ({
+                    x: acc.x + p.x,
+                    y: acc.y + p.y
+                }), {x: 0, y: 0});
+                
+                return {
+                    x: sum.x / this.points.length,
+                    y: sum.y / this.points.length
+                };
+            }
+            
+            animate() {
+                // Update state machine
+                switch(this.phase) {
+                    case 'generating':
+                        this.pointsOpacity = Math.min(1, this.pointsOpacity + this.fadeSpeed);
+                        if (this.pointsOpacity >= 1) {
+                            this.phase = 'animating';
+                        }
+                        break;
+                        
+                    case 'animating':
+                        this.currentAngle += this.animationSpeed;
+                        
+                        if (this.currentAngle >= this.maxAngle) {
+                            this.currentAngle = this.maxAngle;
+                        }
+                        
+                        this.calculateCircles(this.currentAngle);
+                        
+                        if (!this.foundOptimal && this.checkAllCirclesOverlap()) {
+                            this.optimalPoint = this.findOptimalPoint();
+                            this.foundOptimal = true;
+                            this.phase = 'found';
+                        }
+                        break;
+                        
+                    case 'found':
+                        this.optimalOpacity = Math.min(1, this.optimalOpacity + this.fadeSpeed * 2);
+                        this.pauseCounter++;
+                        
+                        if (this.pauseCounter >= this.pauseDuration) {
+                            this.phase = 'fading';
+                        }
+                        break;
+                        
+                    case 'fading':
+                        this.circlesOpacity = Math.max(0, this.circlesOpacity - this.fadeSpeed);
+                        this.pointsOpacity = Math.max(0, this.pointsOpacity - this.fadeSpeed);
+                        this.optimalOpacity = Math.max(0, this.optimalOpacity - this.fadeSpeed);
+                        
+                        if (this.circlesOpacity <= 0) {
+                            this.phase = 'complete';
+                        }
+                        break;
+                        
+                    case 'complete':
+                        this.generatePoints();
+                        break;
+                }
+                
+                this.draw();
+                requestAnimationFrame(() => this.animate());
+            }
+            
+            draw() {
+                // Clear with gradient background
+                const gradient = this.ctx.createLinearGradient(0, 0, this.width, this.height);
+                gradient.addColorStop(0, 'rgba(102, 126, 234, 0.95)');
+                gradient.addColorStop(1, 'rgba(118, 75, 162, 0.95)');
+                this.ctx.fillStyle = gradient;
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                // Draw intersection area if circles overlap
+                if (this.checkAllCirclesOverlap() && this.circles.length > 0 && this.circlesOpacity > 0) {
+                    this.ctx.globalAlpha = this.circlesOpacity * 0.3;
+                    this.drawIntersectionArea();
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                // Draw circles with opacity
+                if (this.circlesOpacity > 0) {
+                    this.ctx.globalAlpha = this.circlesOpacity;
+                    this.circles.forEach(circle => {
+                        this.drawCircle(circle);
+                    });
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                // Draw input points with opacity
+                if (this.pointsOpacity > 0) {
+                    this.ctx.globalAlpha = this.pointsOpacity;
+                    this.points.forEach(point => {
+                        this.drawPoint(point);
+                    });
+                    this.ctx.globalAlpha = 1;
+                }
+                
+                // Draw optimal point with opacity and pulsing effect
+                if (this.optimalPoint && this.optimalOpacity > 0) {
+                    const pulse = Math.sin(Date.now() / 300) * 0.2 + 0.8;
+                    this.ctx.globalAlpha = this.optimalOpacity * pulse;
+                    this.drawOptimalPoint(this.optimalPoint);
+                    this.ctx.globalAlpha = 1;
+                }
+            }
+            
+            drawPoint(point) {
+                // Glow effect
+                const gradient = this.ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.pointRadius * 3
+                );
+                gradient.addColorStop(0, 'rgba(255, 255, 255, 0.8)');
+                gradient.addColorStop(0.5, 'rgba(255, 255, 255, 0.4)');
+                gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                
+                this.ctx.fillStyle = gradient;
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.pointRadius * 3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Main point
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.pointRadius, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 1)';
+                this.ctx.lineWidth = 2;
+                this.ctx.stroke();
+            }
+            
+            drawCircle(circle) {
+                // Draw subtle glow effect
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                this.ctx.lineWidth = 3;
+                this.ctx.beginPath();
+                this.ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+                
+                // Draw main circle line - thin and solid
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.7)';
+                this.ctx.lineWidth = 1.5;
+                this.ctx.beginPath();
+                this.ctx.arc(circle.center.x, circle.center.y, circle.radius, 0, Math.PI * 2);
+                this.ctx.stroke();
+            }
+            
+            drawIntersectionArea() {
+                if (this.circles.length === 0) return;
+                
+                this.ctx.save();
+                
+                this.ctx.beginPath();
+                this.ctx.arc(this.circles[0].center.x, this.circles[0].center.y, 
+                            this.circles[0].radius, 0, Math.PI * 2);
+                this.ctx.clip();
+                
+                for (let i = 1; i < this.circles.length; i++) {
+                    this.ctx.beginPath();
+                    this.ctx.arc(this.circles[i].center.x, this.circles[i].center.y, 
+                                this.circles[i].radius, 0, Math.PI * 2);
+                    this.ctx.clip();
+                }
+                
+                this.ctx.fillStyle = 'rgba(255, 255, 255, 0.4)';
+                this.ctx.fillRect(0, 0, this.width, this.height);
+                
+                this.ctx.restore();
+            }
+            
+            drawOptimalPoint(point) {
+                // Outer glow rings
+                for (let i = 3; i > 0; i--) {
+                    const gradient = this.ctx.createRadialGradient(
+                        point.x, point.y, 0,
+                        point.x, point.y, this.optimalRadius * i * 1.5
+                    );
+                    gradient.addColorStop(0, `rgba(255, 215, 0, ${0.3 / i})`);
+                    gradient.addColorStop(1, 'rgba(255, 215, 0, 0)');
+                    
+                    this.ctx.fillStyle = gradient;
+                    this.ctx.beginPath();
+                    this.ctx.arc(point.x, point.y, this.optimalRadius * i * 1.5, 0, Math.PI * 2);
+                    this.ctx.fill();
+                }
+                
+                // Draw concentric circles (target/bullseye design)
+                const circles = [
+                    { radius: this.optimalRadius * 1.2, lineWidth: 2, opacity: 0.4 },
+                    { radius: this.optimalRadius * 0.8, lineWidth: 2, opacity: 0.6 },
+                    { radius: this.optimalRadius * 0.4, lineWidth: 2, opacity: 0.8 }
+                ];
+                
+                circles.forEach(({radius, lineWidth, opacity}) => {
+                    this.ctx.strokeStyle = `rgba(255, 215, 0, ${opacity})`;
+                    this.ctx.lineWidth = lineWidth;
+                    this.ctx.beginPath();
+                    this.ctx.arc(point.x, point.y, radius, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                });
+                
+                // Center filled circle
+                const centerGradient = this.ctx.createRadialGradient(
+                    point.x, point.y, 0,
+                    point.x, point.y, this.optimalRadius * 0.3
+                );
+                centerGradient.addColorStop(0, 'rgba(255, 255, 255, 1)');
+                centerGradient.addColorStop(1, 'rgba(255, 215, 0, 1)');
+                
+                this.ctx.fillStyle = centerGradient;
+                this.ctx.beginPath();
+                this.ctx.arc(point.x, point.y, this.optimalRadius * 0.3, 0, Math.PI * 2);
+                this.ctx.fill();
+                
+                // Subtle crosshair lines
+                this.ctx.strokeStyle = 'rgba(255, 215, 0, 0.5)';
+                this.ctx.lineWidth = 1.5;
+                
+                // Horizontal line
+                this.ctx.beginPath();
+                this.ctx.moveTo(point.x - this.optimalRadius * 1.5, point.y);
+                this.ctx.lineTo(point.x + this.optimalRadius * 1.5, point.y);
+                this.ctx.stroke();
+                
+                // Vertical line
+                this.ctx.beginPath();
+                this.ctx.moveTo(point.x, point.y - this.optimalRadius * 1.5);
+                this.ctx.lineTo(point.x, point.y + this.optimalRadius * 1.5);
+                this.ctx.stroke();
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('load', () => {
+            new JAGRBackgroundAnimation();
+        });
+    </script>
+</body>
+</html>
